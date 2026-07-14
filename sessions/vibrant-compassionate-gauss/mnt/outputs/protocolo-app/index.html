@@ -789,6 +789,7 @@ function renderHoje(el) {
 // ─── TREINO ─────────────────────────────────────────────────
 
 function renderTreino(el) {
+  el.innerHTML = ''; // limpa antes de re-renderizar
   const t = getToday();
   const dow = t.preStart ? 1 : t.dow; // Preview: Monday
   const phase = t.preStart ? 1 : t.phase;
