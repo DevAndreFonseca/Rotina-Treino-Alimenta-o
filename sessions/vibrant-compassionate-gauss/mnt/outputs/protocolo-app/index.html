@@ -790,42 +790,52 @@ function renderHoje(el) {
 
 function renderTreino(el) {
   el.innerHTML = ''; // limpa antes de re-renderizar
+
   const t = getToday();
-  const dow = t.preStart ? 1 : t.dow; // Preview: Monday
+  const dow = t.preStart ? 1 : t.dow;
   const phase = t.preStart ? 1 : t.phase;
   const training = TRAINING[dow];
+  const stKey = `ex-done-${todayKey()}`;
+  const done = load(stKey, {});
 
   // Hero banner
   const heroColor = training ? (training.name.includes('PUSH') ? '#1A3A5C' : training.name.includes('PULL') ? '#5A1A7A' : '#7A3500') : '#3D3D3D';
-  el.innerHTML += `
-    <div style="background:linear-gradient(135deg,${heroColor},${heroColor}cc);border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
-      <div style="font-size:30px">${training ? '💪' : '😴'}</div>
-      <div>
-        <div style="color:white;font-size:15px;font-weight:700">${training ? training.name + ' · ' + training.sub : 'Descanso'}</div>
-        <div style="color:rgba(255,255,255,0.7);font-size:12px;margin-top:2px">${t.preStart ? 'Prévia D1 — Segunda' : 'Treino de hoje'}</div>
-      </div>
+  const hero = document.createElement('div');
+  hero.style.cssText = `background:linear-gradient(135deg,${heroColor},${heroColor}cc);border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px`;
+  hero.innerHTML = `
+    <div style="font-size:30px">${training ? '💪' : '😴'}</div>
+    <div>
+      <div style="color:white;font-size:15px;font-weight:700">${training ? training.name + ' · ' + training.sub : 'Descanso'}</div>
+      <div style="color:rgba(255,255,255,0.7);font-size:12px;margin-top:2px">${t.preStart ? 'Prévia D1 — Segunda' : 'Treino de hoje'}</div>
     </div>`;
-  const stKey = `ex-done-${todayKey()}`;
-  let done = load(stKey, {});
+  el.appendChild(hero);
 
   // Phase toggle
-  el.innerHTML += `
-    <div class="phase-wrap">
-      <button class="phase-btn ${currentPhase===1?'active':''}" onclick="setPhase(1)">Fase 1<br><small style="font-weight:400;font-size:11px">8–10 reps · 60–90s</small></button>
-      <button class="phase-btn ${currentPhase===2?'active':''}" onclick="setPhase(2)">Fase 2<br><small style="font-weight:400;font-size:11px">Drop sets · 45–60s</small></button>
-    </div>`;
+  const phaseWrap = document.createElement('div');
+  phaseWrap.className = 'phase-wrap';
+  phaseWrap.innerHTML = `
+    <button class="phase-btn ${currentPhase===1?'active':''}" onclick="setPhase(1)">Fase 1<br><small style="font-weight:400;font-size:11px">8–10 reps · 60–90s</small></button>
+    <button class="phase-btn ${currentPhase===2?'active':''}" onclick="setPhase(2)">Fase 2<br><small style="font-weight:400;font-size:11px">Drop sets · 45–60s</small></button>`;
+  el.appendChild(phaseWrap);
 
+  if (!training) {
+    const rest = document.createElement('div');
+    rest.className = 'card';
+    rest.innerHTML = '<div class="card-body" style="text-align:center;padding:32px;color:var(--cinza-m)">😴 Dia de descanso — recuperação ativa</div>';
+    el.appendChild(rest);
+    return;
+  }
+
+  // Exercise card
   const card = document.createElement('div');
   card.className = 'card';
-  card.innerHTML = `
-    <div class="card-header">
-      <div class="card-title">${training.name}</div>
-      <div class="card-sub">${training.sub}</div>
-    </div>
-    <div class="card-body" id="ex-list"></div>`;
-  el.appendChild(card);
+  const cardHeader = document.createElement('div');
+  cardHeader.className = 'card-header';
+  cardHeader.innerHTML = `<div class="card-title">${training.name}</div><div class="card-sub">${training.sub}</div>`;
+  card.appendChild(cardHeader);
 
-  const list = card.querySelector('#ex-list');
+  const list = document.createElement('div');
+  list.className = 'card-body';
   training.exercises.forEach((ex, i) => {
     const isDone = !!done[i];
     const div = document.createElement('div');
@@ -840,22 +850,28 @@ function renderTreino(el) {
       </div>`;
     list.appendChild(div);
   });
+  card.appendChild(list);
+  el.appendChild(card);
 
-  // Progress bar for today's exercises
+  // Progress bar
   const total = training.exercises.length;
   const doneCount = Object.keys(done).length;
   if (total > 0) {
     const pct = Math.round((doneCount / total) * 100);
-    el.innerHTML += `
-      <div class="card"><div class="card-body">
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-          <span style="font-size:13px;color:var(--cinza-m)">Progresso do treino</span>
-          <span style="font-size:13px;font-weight:700;color:var(--verde)">${doneCount}/${total}</span>
-        </div>
-        <div style="background:#e8f5eb;border-radius:6px;height:8px;overflow:hidden">
-          <div style="background:var(--verde);height:100%;border-radius:6px;width:${pct}%;transition:width 0.3s"></div>
-        </div>
-      </div></div>`;
+    const progCard = document.createElement('div');
+    progCard.className = 'card';
+    const progBody = document.createElement('div');
+    progBody.className = 'card-body';
+    progBody.innerHTML = `
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:13px;color:var(--cinza-m)">Progresso do treino</span>
+        <span style="font-size:13px;font-weight:700;color:var(--verde)">${doneCount}/${total}</span>
+      </div>
+      <div style="background:#e8f5eb;border-radius:6px;height:8px;overflow:hidden">
+        <div style="background:var(--verde);height:100%;border-radius:6px;width:${pct}%;transition:width 0.3s"></div>
+      </div>`;
+    progCard.appendChild(progBody);
+    el.appendChild(progCard);
   }
 
   window.toggleEx = function(i) {
@@ -863,7 +879,6 @@ function renderTreino(el) {
     if (d[i]) delete d[i]; else d[i] = true;
     save(stKey, d);
     renderTreino(document.getElementById('content'));
-    document.getElementById('content').scrollTop = document.getElementById('content').scrollTop;
   };
   window.setPhase = function(p) {
     currentPhase = p;
