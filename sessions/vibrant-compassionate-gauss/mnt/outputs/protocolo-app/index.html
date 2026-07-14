@@ -284,10 +284,94 @@ html, body { height: 100%; overflow: hidden; font-family: -apple-system, 'Segoe 
 
 /* ANIMATIONS */
 @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.fade-in { animation: fadeIn 0.2s ease; }
+.fade-in { animation: fadeIn 0.25s ease; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+/* SPLASH SCREEN */
+#splash {
+  position: fixed; inset: 0; z-index: 9999;
+  background: linear-gradient(160deg, #0a2b15 0%, #1A5C2E 55%, #2d7a45 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: opacity 0.55s ease, visibility 0.55s ease;
+}
+#splash.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+.splash-logo {
+  width: 96px; height: 96px; background: rgba(255,255,255,0.13);
+  border-radius: 26px; display: flex; align-items: center; justify-content: center;
+  font-size: 50px; margin-bottom: 26px; border: 1.5px solid rgba(255,255,255,0.2);
+  animation: splashPop 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+.splash-title {
+  color: white; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;
+  animation: slideUp 0.5s 0.2s ease both;
+}
+.splash-name {
+  color: rgba(255,255,255,0.65); font-size: 14px; margin-top: 6px; font-weight: 500;
+  animation: slideUp 0.5s 0.35s ease both;
+}
+.splash-bar {
+  width: 48px; height: 4px; background: rgba(255,255,255,0.25);
+  border-radius: 2px; margin-top: 44px;
+  animation: slideUp 0.5s 0.5s ease both; overflow: hidden;
+}
+.splash-bar-fill {
+  height: 100%; background: white; border-radius: 2px;
+  animation: splashLoad 1.3s 0.5s ease forwards;
+  width: 0;
+}
+@keyframes splashPop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes splashLoad { from { width: 0; } to { width: 100%; } }
+
+/* HEADER — gradient premium */
+#header {
+  background: linear-gradient(135deg, #0f3d1e 0%, #1A5C2E 65%, #2a7040 100%);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.28);
+}
+#header-title { font-size: 17px; font-weight: 700; letter-spacing: -0.2px; }
+
+/* CONTENT TRANSITION */
+#content { transition: opacity 0.18s ease; }
+#content.fading { opacity: 0; }
+
+/* BOTTOM NAV — indicator bar on active */
+.nav-btn { position: relative; }
+.nav-btn.active::before {
+  content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 28px; height: 3px; background: var(--verde);
+  border-radius: 0 0 3px 3px;
+}
+.nav-btn .icon { font-size: 20px; line-height: 1; transition: transform 0.2s; }
+.nav-btn.active .icon { transform: scale(1.15) translateY(-1px); }
+.nav-btn { font-size: 10px; font-weight: 600; transition: color 0.15s; }
+
+/* CARDS — better depth */
+.card {
+  background: white; border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.07);
+  margin-bottom: 10px; overflow: hidden;
+}
+.card-header { padding: 14px 16px 11px; border-bottom: 1px solid #f2f2f2; }
+.card-title { font-size: 15px; font-weight: 700; }
+
+/* PROGRESS BAR — gradient fill */
+#progress-bar-fill { background: linear-gradient(90deg, #1A5C2E, #3d9e5c); }
+
+/* CHECK BOXES — rounded */
+.check-box { border-radius: 50%; }
+.check-box.done::after { font-size: 12px; }
+
 </style>
 </head>
 <body>
+
+<!-- SPLASH SCREEN -->
+<div id="splash">
+  <div class="splash-logo">💪</div>
+  <div class="splash-title">Protocolo 60 Dias</div>
+  <div class="splash-name">André Fonseca</div>
+  <div class="splash-bar"><div class="splash-bar-fill"></div></div>
+</div>
 
 <div id="header">
   <span id="header-title">Protocolo 60 Dias</span>
@@ -548,10 +632,16 @@ function updateHeader() {
 }
 
 function switchTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('nav-' + tab).classList.add('active');
-  render();
+  if (tab === currentTab) return;
+  const content = document.getElementById('content');
+  content.classList.add('fading');
+  setTimeout(() => {
+    currentTab = tab;
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('nav-' + tab).classList.add('active');
+    render();
+    content.classList.remove('fading');
+  }, 160);
 }
 
 function render() {
@@ -989,6 +1079,11 @@ function resetChecklist() {
 // ═══════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════
+
+// Splash screen
+setTimeout(() => {
+  document.getElementById('splash').classList.add('hide');
+}, 1600);
 
 updateHeader();
 currentPhase = getToday().phase;
