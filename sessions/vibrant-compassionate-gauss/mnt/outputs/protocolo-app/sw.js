@@ -1,5 +1,12 @@
-const CACHE = 'protocolo60-v2';
-const ASSETS = ['/', '/index.html', '/manifest.json'];
+const CACHE = 'protocolo60-v3';
+const BASE = '/Rotina-Treino-Alimenta-o';
+const ASSETS = [
+  BASE + '/',
+  BASE + '/index.html',
+  BASE + '/manifest.json',
+  BASE + '/icon-192.png',
+  BASE + '/icon-512.png',
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
