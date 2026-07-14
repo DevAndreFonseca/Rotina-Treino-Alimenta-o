@@ -479,10 +479,13 @@ let currentListTab = 0;
 function getToday() {
   const now = new Date();
   const diff = Math.floor((now - START_DATE) / (1000 * 60 * 60 * 24));
-  const day = Math.max(0, diff) + 1;
+  if (diff < 0) {
+    return { preStart: true, daysLeft: Math.abs(diff), day: 0, phase: 1, dow: now.getDay() };
+  }
+  const day = diff + 1;
   const phase = day <= 30 ? 1 : 2;
   const dow = now.getDay(); // 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
-  return { day: Math.min(day, 60), phase, dow };
+  return { preStart: false, day: Math.min(day, 60), phase, dow };
 }
 
 function getDayType(dow) {
@@ -534,9 +537,14 @@ function todayKey() {
 // ═══════════════════════════════════════════════════
 
 function updateHeader() {
-  const { day, phase, dow } = getToday();
-  document.getElementById('phase-badge').textContent = `Fase ${phase}`;
-  document.getElementById('day-badge').textContent = `D${day}`;
+  const t = getToday();
+  if (t.preStart) {
+    document.getElementById('phase-badge').textContent = `Começa em ${t.daysLeft}d`;
+    document.getElementById('day-badge').textContent = `20/07`;
+  } else {
+    document.getElementById('phase-badge').textContent = `Fase ${t.phase}`;
+    document.getElementById('day-badge').textContent = `D${t.day}`;
+  }
 }
 
 function switchTab(tab) {
@@ -561,7 +569,27 @@ function render() {
 // ─── HOJE ───────────────────────────────────────────────────
 
 function renderHoje(el) {
-  const { day, phase, dow } = getToday();
+  const t = getToday();
+  if (t.preStart) {
+    el.innerHTML = `
+      <div class="card" style="text-align:center;padding:32px 16px">
+        <div style="font-size:48px;margin-bottom:12px">🚀</div>
+        <div style="font-size:22px;font-weight:800;color:var(--verde);margin-bottom:6px">Faltam ${t.daysLeft} dias</div>
+        <div style="font-size:15px;color:var(--cinza-m);margin-bottom:20px">O protocolo começa em <strong>20 de julho</strong></div>
+        <div style="background:var(--verde-l);border-radius:var(--radius-sm);padding:14px;text-align:left">
+          <div style="font-size:13px;font-weight:700;color:var(--verde);margin-bottom:8px">Use esse tempo para preparar:</div>
+          <div style="font-size:13px;color:var(--cinza);line-height:1.7">
+            ✅ Fazer a compra do mercado (lista na aba Listas)<br>
+            ✅ Separar potes para o meal prep<br>
+            ✅ Comprar creatina e suplementos<br>
+            ✅ Preparar a roupa de treino<br>
+            ✅ Deixar garrafa d'água na mesinha
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+  const { day, phase, dow } = t;
   const dayType = getDayType(dow);
   const schedule = SCHEDULES[dayType];
   const nowMin = getTodayNowTime();
@@ -796,11 +824,12 @@ function renderJantar(card) {
         <tr><td>Azeite + limão</td><td>15ml</td><td>✓</td><td>10ml</td></tr>
         <tr><td>Carbo (escolha 1 abaixo)</td><td>ver opções</td><td>✓</td><td>Retirar</td></tr>
       </table>
-      <div class="carb-title">Substitutos da Batata Doce:</div>
-      <div class="carb-item"><div class="carb-dot"></div><div class="carb-info"><div class="carb-name">Mandioca cozida (congelada)</div><div class="carb-prep">150g · Ferver 15 min ou micro-ondas 10 min</div></div></div>
-      <div class="carb-item"><div class="carb-dot"></div><div class="carb-info"><div class="carb-name">Abóbora cabotiá assada</div><div class="carb-prep">200g em cubos · Forno 200°C por 25 min</div></div></div>
-      <div class="carb-item"><div class="carb-dot"></div><div class="carb-info"><div class="carb-name">Inhame cozido</div><div class="carb-prep">150g · 20 min, amassa com azeite e sal</div></div></div>
-      <div class="carb-item"><div class="carb-dot"></div><div class="carb-info"><div class="carb-name">Macarrão integral</div><div class="carb-prep">80g seco · Ferve 8 min</div></div></div>
+      <div class="carb-title">Carbo fácil (air fryer ou sem preparo):</div>
+      <div class="carb-item"><div class="carb-dot" style="background:var(--laranja)"></div><div class="carb-info"><div class="carb-name">🍌 Banana (2 unidades)</div><div class="carb-prep">Zero preparo · ~50g carbo · Come junto com o frango</div></div></div>
+      <div class="carb-item"><div class="carb-dot" style="background:var(--laranja)"></div><div class="carb-info"><div class="carb-name">🍞 Pão integral (2 fatias)</div><div class="carb-prep">Zero preparo · Abre o pacote e come</div></div></div>
+      <div class="carb-item"><div class="carb-dot"></div><div class="carb-info"><div class="carb-name">🥔 Mandioca no air fryer</div><div class="carb-prep">150g (congelada) · Air fryer 200°C por 20 min · Tempera com azeite e sal</div></div></div>
+      <div class="carb-item"><div class="carb-dot"></div><div class="carb-info"><div class="carb-name">🥔 Batata inglesa no air fryer</div><div class="carb-prep">200g em cubos · Air fryer 200°C por 15 min · Fica crocante por fora</div></div></div>
+      <div class="carb-item"><div class="carb-dot"></div><div class="carb-info"><div class="carb-name">🫙 Cuscuz marroquino</div><div class="carb-prep">80g seco · Água fervente do bico até cobrir + 5 min de tampa · Zero fogão</div></div></div>
       <div class="tip-box">⚠️ Fase 2: retire o carbo do jantar. Só proteína + salada + azeite.</div>
     </div>`;
 }
@@ -887,6 +916,9 @@ function renderChecklist(el) {
         <div style="background:var(--verde);height:100%;border-radius:6px;width:${pct}%;transition:width 0.3s"></div>
       </div>
       <div style="font-size:12px;color:var(--cinza-m);margin-top:6px;text-align:center">Reset automático à meia-noite</div>
+      <button onclick="resetChecklist()" style="margin-top:12px;width:100%;padding:10px;border:1.5px solid var(--cinza-m);border-radius:var(--radius-sm);background:none;color:var(--cinza-m);font-size:13px;font-weight:600;cursor:pointer">
+        🔄 Limpar checklist de hoje
+      </button>
     </div></div>`;
 }
 
@@ -945,6 +977,13 @@ function renderMercado(el) {
   };
   resetWrap.appendChild(btn);
   el.appendChild(resetWrap);
+}
+
+function resetChecklist() {
+  if (confirm('Limpar todas as tarefas de hoje?')) {
+    save(`check-${todayKey()}`, {});
+    renderListas(document.getElementById('content'));
+  }
 }
 
 // ═══════════════════════════════════════════════════
