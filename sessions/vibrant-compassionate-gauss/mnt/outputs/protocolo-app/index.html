@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1A5C2E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="60 Dias">
+<link rel="manifest" href="manifest.json">
+<title>Protocolo 60 Dias</title>
+<style>
+:root {
+  --verde: #1A5C2E;
+  --verde-l: #e8f5eb;
+  --verde-m: #2d7a45;
+  --laranja: #C05000;
+  --laranja-l: #fff0e8;
+  --azul: #1A3A5C;
+  --azul-l: #e8f0fa;
+  --roxo: #5A1A7A;
+  --roxo-l: #f3e8fa;
+  --cinza: #3D3D3D;
+  --cinza-l: #f5f5f5;
+  --cinza-m: #9e9e9e;
+  --branco: #ffffff;
+  --sombra: 0 2px 12px rgba(0,0,0,0.10);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --nav-h: 64px;
+  --header-h: 60px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; font-family: -apple-system, 'Segoe UI', sans-serif; background: #f0f2f0; color: var(--cinza); }
+
+/* HEADER */
+#header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: var(--verde); color: white;
+  height: var(--header-h); display: flex; align-items: center; padding: 0 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+#header-title { font-size: 18px; font-weight: 700; flex: 1; }
+#phase-badge {
+  background: rgba(255,255,255,0.2); border-radius: 20px;
+  padding: 4px 12px; font-size: 13px; font-weight: 600;
+}
+#day-badge {
+  background: var(--laranja); border-radius: 20px;
+  padding: 4px 10px; font-size: 12px; font-weight: 600; margin-left: 6px;
+}
+
+/* MAIN CONTENT */
+#content {
+  position: fixed; top: var(--header-h); bottom: calc(var(--nav-h) + var(--safe-bottom));
+  left: 0; right: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 12px 12px 8px;
+}
+
+/* BOTTOM NAV */
+#bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  background: white; height: calc(var(--nav-h) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  display: flex; border-top: 1px solid #e0e0e0;
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 3px; cursor: pointer; border: none;
+  background: none; padding: 6px 0; transition: all 0.15s;
+  color: var(--cinza-m); font-size: 10px; font-weight: 500;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-btn.active { color: var(--verde); }
+.nav-btn .icon { font-size: 22px; line-height: 1; }
+.nav-btn.active .icon { transform: scale(1.1); }
+
+/* CARDS */
+.card {
+  background: white; border-radius: var(--radius);
+  box-shadow: var(--sombra); margin-bottom: 10px; overflow: hidden;
+}
+.card-header {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.card-title { font-size: 15px; font-weight: 700; color: var(--cinza); }
+.card-sub { font-size: 12px; color: var(--cinza-m); margin-top: 2px; }
+.card-body { padding: 12px 16px; }
+
+/* PROGRESS BAR */
+#progress-wrap { background: white; border-radius: var(--radius); box-shadow: var(--sombra); padding: 14px 16px; margin-bottom: 10px; }
+#progress-label { display: flex; justify-content: space-between; margin-bottom: 8px; }
+#progress-label span { font-size: 13px; color: var(--cinza-m); }
+#progress-label strong { font-size: 14px; font-weight: 700; color: var(--verde); }
+#progress-bar-bg { background: #e8f5eb; border-radius: 6px; height: 10px; overflow: hidden; }
+#progress-bar-fill { background: linear-gradient(90deg, var(--verde), var(--verde-m)); height: 100%; border-radius: 6px; transition: width 0.5s; }
+
+/* TIMELINE */
+.timeline-item {
+  display: flex; align-items: flex-start; gap: 12px; padding: 10px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+.timeline-item:last-child { border-bottom: none; }
+.t-time {
+  font-size: 13px; font-weight: 700; min-width: 46px;
+  padding-top: 1px; color: var(--cinza-m);
+}
+.t-dot {
+  width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; flex-shrink: 0;
+}
+.t-text { font-size: 14px; line-height: 1.4; flex: 1; }
+.t-tipo-sono .t-dot { background: var(--roxo); }
+.t-tipo-sono .t-time { color: var(--roxo); }
+.t-tipo-alimentacao .t-dot { background: var(--laranja); }
+.t-tipo-alimentacao .t-time { color: var(--laranja); }
+.t-tipo-treino .t-dot { background: var(--verde); }
+.t-tipo-treino .t-time { color: var(--verde); }
+.t-tipo-trabalho .t-dot { background: var(--azul); }
+.t-tipo-trabalho .t-time { color: var(--azul); }
+.t-tipo-mercado .t-dot { background: #888; }
+.t-tipo-mercado .t-time { color: #888; }
+.t-tipo-normal .t-dot { background: #ccc; }
+
+/* HOJE HIGHLIGHT */
+.t-now { background: #fffbe6; border-radius: 8px; padding: 2px 6px; margin: -2px -6px; }
+
+/* EXERCISES */
+.ex-item {
+  padding: 12px 0; border-bottom: 1px solid #f0f0f0; display: flex; align-items: flex-start; gap: 12px;
+}
+.ex-item:last-child { border-bottom: none; }
+.ex-check {
+  width: 26px; height: 26px; border-radius: 50%; border: 2px solid #ddd;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; transition: all 0.2s; margin-top: 1px;
+  background: white;
+}
+.ex-check.done { background: var(--verde); border-color: var(--verde); }
+.ex-check.done::after { content: '✓'; color: white; font-size: 14px; font-weight: 700; }
+.ex-info { flex: 1; }
+.ex-name { font-size: 14px; font-weight: 600; }
+.ex-name.done { text-decoration: line-through; color: var(--cinza-m); }
+.ex-sets { font-size: 13px; color: var(--verde); font-weight: 700; margin-top: 2px; }
+.ex-note { font-size: 12px; color: var(--cinza-m); margin-top: 3px; line-height: 1.4; }
+.ex-phase2-tip {
+  background: var(--laranja-l); border-left: 3px solid var(--laranja);
+  padding: 6px 10px; border-radius: 0 6px 6px 0; font-size: 12px;
+  color: var(--laranja); margin-top: 6px; font-weight: 500;
+}
+
+/* MEALS */
+.meal-tab-wrap { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 10px; }
+.meal-tab-wrap::-webkit-scrollbar { display: none; }
+.meal-tab {
+  flex-shrink: 0; padding: 7px 14px; border-radius: 20px;
+  font-size: 13px; font-weight: 600; cursor: pointer; border: none;
+  background: white; color: var(--cinza-m); box-shadow: var(--sombra);
+  transition: all 0.15s;
+}
+.meal-tab.active { background: var(--verde); color: white; }
+
+.meal-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.meal-table th { background: var(--verde); color: white; padding: 8px; text-align: left; font-size: 12px; }
+.meal-table td { padding: 8px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+.meal-table tr:last-child td { border-bottom: none; }
+.meal-table tr:nth-child(even) td { background: var(--cinza-l); }
+
+.option-card {
+  background: var(--verde-l); border-radius: var(--radius-sm);
+  padding: 12px; margin-bottom: 8px; cursor: pointer;
+}
+.option-card:last-child { margin-bottom: 0; }
+.option-name { font-size: 14px; font-weight: 700; color: var(--verde); }
+.option-carb { font-size: 13px; color: var(--cinza); margin-top: 3px; }
+.option-prep { font-size: 12px; color: var(--cinza-m); margin-top: 4px; font-style: italic; }
+
+.tip-box {
+  background: var(--laranja-l); border-radius: var(--radius-sm);
+  padding: 10px 12px; margin-top: 10px; font-size: 13px;
+  color: var(--laranja); font-weight: 500; line-height: 1.5;
+}
+.info-box {
+  background: var(--azul-l); border-radius: var(--radius-sm);
+  padding: 10px 12px; margin-top: 10px; font-size: 13px;
+  color: var(--azul); font-weight: 500; line-height: 1.5;
+}
+
+/* STRATEGY TABLE */
+.strat-row { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; align-items: flex-start; }
+.strat-row:last-child { border-bottom: none; }
+.strat-label { font-size: 12px; font-weight: 700; color: var(--cinza-m); min-width: 65px; }
+.strat-action { font-size: 13px; flex: 1; }
+.strat-prot { font-size: 13px; font-weight: 700; color: var(--verde); min-width: 55px; text-align: right; }
+
+/* CHECKLIST */
+.check-item {
+  display: flex; align-items: center; gap: 12px; padding: 13px 0;
+  border-bottom: 1px solid #f5f5f5; cursor: pointer; user-select: none;
+}
+.check-item:last-child { border-bottom: none; }
+.check-box {
+  width: 24px; height: 24px; border-radius: 6px; border: 2px solid #ddd;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.2s; background: white;
+}
+.check-box.done { background: var(--verde); border-color: var(--verde); }
+.check-box.done::after { content: '✓'; color: white; font-size: 14px; font-weight: 700; }
+.check-text { font-size: 14px; flex: 1; line-height: 1.4; }
+.check-text.done { text-decoration: line-through; color: var(--cinza-m); }
+
+/* MERCADO */
+.mcat-header {
+  background: var(--cinza-l); padding: 10px 14px; font-size: 12px;
+  font-weight: 700; color: var(--cinza-m); text-transform: uppercase;
+  letter-spacing: 0.5px; border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  margin-top: 8px;
+}
+.mcat-header:first-child { margin-top: 0; }
+.shop-item {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+  background: white; cursor: pointer; border-bottom: 1px solid #f5f5f5;
+  user-select: none;
+}
+.shop-item:last-child { border-bottom: none; border-radius: 0 0 var(--radius-sm) var(--radius-sm); }
+.shop-box {
+  width: 22px; height: 22px; border-radius: 4px; border: 2px solid #ddd;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.2s;
+}
+.shop-box.done { background: var(--verde); border-color: var(--verde); }
+.shop-box.done::after { content: '✓'; color: white; font-size: 12px; font-weight: 700; }
+.shop-text { font-size: 14px; flex: 1; }
+.shop-text.done { text-decoration: line-through; color: var(--cinza-m); }
+
+.reset-btn {
+  background: var(--cinza-l); border: none; border-radius: 20px;
+  padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
+  color: var(--cinza-m); margin: 0 auto; display: block;
+}
+.reset-btn:active { background: #e0e0e0; }
+
+/* TABS (listas) */
+.tab-bar { display: flex; background: var(--cinza-l); border-radius: 10px; padding: 3px; margin-bottom: 12px; }
+.tab-btn { flex: 1; padding: 8px; border: none; background: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--cinza-m); transition: all 0.2s; }
+.tab-btn.active { background: white; color: var(--verde); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+
+/* SECTION HEADER */
+.sec-header {
+  font-size: 12px; font-weight: 700; color: var(--cinza-m);
+  text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 8px; margin-top: 4px;
+}
+
+/* LEGEND */
+.legend { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 16px; border-top: 1px solid #f0f0f0; }
+.legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--cinza-m); }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* PHASE TOGGLE */
+.phase-wrap { display: flex; gap: 8px; margin-bottom: 12px; }
+.phase-btn {
+  flex: 1; padding: 10px; border: 2px solid #e0e0e0; border-radius: var(--radius-sm);
+  background: white; font-size: 13px; font-weight: 600; cursor: pointer;
+  color: var(--cinza-m); transition: all 0.15s; text-align: center;
+}
+.phase-btn.active { border-color: var(--verde); color: var(--verde); background: var(--verde-l); }
+
+/* CARB OPTIONS */
+.carb-title { font-size: 13px; font-weight: 700; color: var(--cinza); margin: 12px 0 8px; }
+.carb-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f5f5f5; }
+.carb-item:last-child { border-bottom: none; }
+.carb-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--verde); flex-shrink: 0; }
+.carb-info { flex: 1; }
+.carb-name { font-size: 13px; font-weight: 600; }
+.carb-prep { font-size: 12px; color: var(--cinza-m); margin-top: 2px; }
+
+/* EMPTY STATE */
+.empty { text-align: center; padding: 40px 20px; color: var(--cinza-m); }
+.empty .emoji { font-size: 48px; margin-bottom: 12px; }
+.empty p { font-size: 14px; line-height: 1.6; }
+
+/* ANIMATIONS */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.fade-in { animation: fadeIn 0.2s ease; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <span id="header-title">Protocolo 60 Dias</span>
+  <span id="phase-badge">Fase 1</span>
+  <span id="day-badge">D1</span>
+</div>
+
+<main id="content"></main>
+
+<nav id="bottom-nav">
+  <button class="nav-btn active" onclick="switchTab('hoje')" id="nav-hoje">
+    <span class="icon">🏠</span>Hoje
+  </button>
+  <button class="nav-btn" onclick="switchTab('treino')" id="nav-treino">
+    <span class="icon">💪</span>Treino
+  </button>
+  <button class="nav-btn" onclick="switchTab('refeicoes')" id="nav-refeicoes">
+    <span class="icon">🍽️</span>Refeições
+  </button>
+  <button class="nav-btn" onclick="switchTab('listas')" id="nav-listas">
+    <span class="icon">✅</span>Listas
+  </button>
+</nav>
+
+<script>
+// ═══════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════
+
+const START_DATE = new Date('2026-07-20');
+
+const TRAINING = {
+  1: { name: 'PUSH A', sub: 'Peito · Ombro · Tríceps', exercises: [
+    { n: 'Supino Reto com Barra', s: 4, r: '8–10', t: 'Exercício base — progrida o peso toda semana' },
+    { n: 'Supino Inclinado com Halteres', s: 3, r: '10–12', t: 'Ângulo 30°, foco no peitoral superior' },
+    { n: 'Crucifixo Inclinado com Halteres', s: 3, r: '12–15', t: 'Movimento de abertura, sem travar cotovelo' },
+    { n: 'Desenvolvimento Militar com Barra', s: 4, r: '8–10', t: 'Exercício base do ombro' },
+    { n: 'Elevação Lateral', s: 3, r: '15', t: 'Controle na descida — 3s excêntrico' },
+    { n: 'Tríceps Testa (Skull Crusher)', s: 3, r: '10–12', t: 'Barra reta ou EZ' },
+    { n: 'Tríceps na Corda no Pulley', s: 3, r: '15', t: 'Separe as mãos na extensão final' },
+  ]},
+  2: { name: 'PULL A', sub: 'Costas · Bíceps', exercises: [
+    { n: 'Puxada Frontal Pegada Pronada', s: 4, r: '8–10', t: 'Puxe até o queixo, escápulas juntas' },
+    { n: 'Remada Curvada com Barra', s: 4, r: '8–10', t: 'Tronco a ~45°, cotovelos junto ao corpo' },
+    { n: 'Remada Unilateral com Haltere', s: 3, r: '12', t: 'Apoio no banco, rotação de ombro' },
+    { n: 'Face Pull no Cabo', s: 3, r: '15–20', t: 'Saúde do manguito rotador — não pule!' },
+    { n: 'Rosca Direta com Barra', s: 3, r: '10–12', t: 'Sem balanço de tronco' },
+    { n: 'Rosca Martelo', s: 3, r: '12', t: 'Mantém tensão no braquial' },
+  ]},
+  3: { name: 'LEGS A', sub: 'Quadríceps · Panturrilha · Core', exercises: [
+    { n: 'Agachamento Livre com Barra', s: 4, r: '8–10', t: 'Desça até paralelo, joelhos seguem os dedos' },
+    { n: 'Leg Press 45°', s: 4, r: '12–15', t: 'Pés na largura dos ombros, desça fundo' },
+    { n: 'Extensora', s: 3, r: '15', t: 'Pausa 1s no topo, controle na descida' },
+    { n: 'Avanço com Halteres (alternado)', s: 3, r: '12 cada', t: 'Passo largo, joelho não passa a ponta do pé' },
+    { n: 'Panturrilha em Pé', s: 4, r: '20–25', t: 'Amplitude total, pausa embaixo' },
+    { n: 'Prancha Frontal', s: 3, r: '60s', t: 'Quadril neutro, respira normalmente' },
+    { n: 'Elevação de Pernas Suspenso', s: 3, r: '15', t: 'Controla a descida' },
+    { n: 'Abdominal Crunch', s: 3, r: '20', t: 'Qualidade sobre quantidade' },
+  ]},
+  4: { name: 'PUSH B', sub: 'Ombros · Peito Superior · Tríceps', exercises: [
+    { n: 'Desenvolvimento Arnold', s: 4, r: '10–12', t: 'Rotação completa no movimento' },
+    { n: 'Supino Inclinado com Barra', s: 4, r: '8–10', t: 'Variação do Push A para estímulo diferente' },
+    { n: 'Elevação Lateral com Cabo', s: 3, r: '15', t: 'Mais tensão constante que haltere' },
+    { n: 'Crucifixo no Cabo Cruzado', s: 3, r: '15', t: 'Foco no peitoral médio-inferior' },
+    { n: 'Tríceps Francês com Haltere', s: 3, r: '12', t: 'Coluna reta, cotovelo fixo' },
+    { n: 'Mergulho em Paralelas', s: 3, r: 'Falha', t: 'Se fácil, adicione carga (cinto)' },
+  ]},
+  5: { name: 'PULL B + LEGS B', sub: 'Posterior · Costas · Core', exercises: [
+    { n: 'Levantamento Terra Romeno', s: 4, r: '10', t: 'Quadril para trás, coluna neutra' },
+    { n: 'Flexora / Mesa Flexora', s: 4, r: '12', t: 'Contração total no topo' },
+    { n: 'Stiff com Halteres', s: 3, r: '12', t: 'Amplitude máxima, sem curvar coluna' },
+    { n: 'Remada Baixa na Polia', s: 3, r: '12', t: 'Pegada neutra' },
+    { n: 'Pullover com Haltere', s: 3, r: '12', t: 'Expande o dorsal e a caixa torácica' },
+    { n: 'Rosca na Máquina', s: 3, r: '15', t: 'Finalizador de bíceps' },
+    { n: 'Russian Twist com Peso', s: 3, r: '20', t: 'Rotação de tronco — oblíquos' },
+    { n: 'Prancha Lateral', s: 3, r: '40s cada', t: 'Quadril elevado, corpo reto' },
+  ]},
+  6: { name: 'DESCANSO ATIVO', sub: 'Recuperação · Mobilidade', exercises: [
+    { n: 'Caminhada Leve', s: 1, r: '30–45 min', t: 'Parque, bairro — ar livre' },
+    { n: 'Alongamento Geral', s: 1, r: '10 min', t: 'Foco em pernas, ombros e costas' },
+  ]},
+  0: { name: 'DESCANSO TOTAL', sub: 'Recuperação + Meal Prep', exercises: [
+    { n: 'Meal Prep', s: 1, r: '1h30', t: 'Frango, mandioca, 10 ovos, cuscuz separado' },
+    { n: 'Prepare a mochila de segunda', s: 1, r: '5 min', t: 'Roupa de treino, booster do almoço (2 ovos)' },
+  ]},
+};
+
+const SCHEDULES = {
+  escritorio: [
+    { h: '05:20', a: 'Acordar — não use o celular nos primeiros 5 min', t: 'sono' },
+    { h: '05:25', a: 'Beba 400ml de água (garrafa já deixada na mesinha)', t: 'normal' },
+    { h: '05:30', a: 'Café da manhã — 5 ovos mexidos + 80g aveia + banana + 200ml leite', t: 'alimentacao' },
+    { h: '06:00', a: 'Higiene e preparar mochila — roupa de treino já dentro', t: 'normal' },
+    { h: '06:35', a: 'Sair de casa com bolsa de lanches (booster + pré-treino)', t: 'normal' },
+    { h: '07:00', a: 'Chegada no trabalho', t: 'trabalho' },
+    { h: '10:00', a: 'Lanche — iogurte grego 200g + frutas ou castanhas', t: 'alimentacao' },
+    { h: '12:00', a: 'Almoço no restaurante — proteína + arroz + feijão + salada (~20g prot)', t: 'alimentacao' },
+    { h: '12:30', a: 'Booster — 2 ovos cozidos OU 1 lata atum (+12–25g proteína)', t: 'alimentacao' },
+    { h: '15:30', a: 'Pré-treino — banana + castanhas ou barra de proteína', t: 'alimentacao' },
+    { h: '16:00', a: 'Fim do expediente', t: 'trabalho' },
+    { h: '16:20', a: 'Chega em casa — troca de roupa imediatamente', t: 'normal' },
+    { h: '16:35', a: 'Saída para a academia', t: 'treino' },
+    { h: '16:45', a: 'TREINO — 60 min', t: 'treino' },
+    { h: '17:45', a: 'Pós-treino — whey + banana OU frango + fruta', t: 'alimentacao' },
+    { h: '18:45', a: 'Jantar — 200g peixe/frango + mandioca ou abóbora + salada', t: 'alimentacao' },
+    { h: '21:45', a: 'Ceia — cottage 250g + castanhas (dose maior para compensar almoço)', t: 'alimentacao' },
+    { h: '22:00', a: 'Rotina de sono — tela para baixo, quarto escuro', t: 'sono' },
+    { h: '22:15', a: 'DORMIR — meta de 7h', t: 'sono' },
+  ],
+  segunda: [
+    { h: '06:15', a: 'Acordar — luz natural, não olhe o celular antes da água', t: 'sono' },
+    { h: '06:20', a: 'Beba 400ml de água', t: 'normal' },
+    { h: '06:30', a: 'Café da manhã — 5 ovos mexidos + 80g aveia + banana + 200ml leite', t: 'alimentacao' },
+    { h: '07:00', a: 'Início do home office', t: 'trabalho' },
+    { h: '10:00', a: 'Lanche — iogurte grego + frutas vermelhas', t: 'alimentacao' },
+    { h: '12:00', a: 'Almoço — frango + macarrão integral ou cuscuz + legumes + azeite', t: 'alimentacao' },
+    { h: '15:30', a: 'Pré-treino — banana + pasta de amendoim', t: 'alimentacao' },
+    { h: '16:00', a: 'Encerra expediente — troca de roupa imediatamente', t: 'trabalho' },
+    { h: '16:15', a: 'Saída para a academia', t: 'treino' },
+    { h: '16:30', a: 'TREINO — PUSH A (Peito + Ombro + Tríceps)', t: 'treino' },
+    { h: '17:30', a: 'Pós-treino — whey ou frango + banana', t: 'alimentacao' },
+    { h: '18:30', a: 'Jantar — salmão/frango + mandioca ou inhame + salada', t: 'alimentacao' },
+    { h: '21:45', a: 'Ceia — cottage 200g + castanhas', t: 'alimentacao' },
+    { h: '22:30', a: 'DORMIR', t: 'sono' },
+  ],
+  quinta: [
+    { h: '06:15', a: 'Acordar', t: 'sono' },
+    { h: '06:30', a: 'Café da manhã — 5 ovos + 80g aveia + banana + 200ml leite', t: 'alimentacao' },
+    { h: '07:00', a: 'Início do home office', t: 'trabalho' },
+    { h: '10:00', a: 'Lanche — iogurte grego', t: 'alimentacao' },
+    { h: '12:00', a: 'Almoço — frango + macarrão/cuscuz + legumes', t: 'alimentacao' },
+    { h: '15:30', a: 'Pré-treino — banana + castanhas', t: 'alimentacao' },
+    { h: '16:00', a: 'Encerra expediente — ABRA a lista de mercado agora', t: 'trabalho' },
+    { h: '16:15', a: 'Saída para a academia', t: 'treino' },
+    { h: '16:30', a: 'TREINO — PUSH B (Ombros + Peito + Tríceps)', t: 'treino' },
+    { h: '17:30', a: 'Pós-treino — whey no caminho', t: 'alimentacao' },
+    { h: '17:45', a: 'MERCADO — lista na aba Listas', t: 'mercado' },
+    { h: '18:45', a: 'Chega em casa — guardar compras', t: 'normal' },
+    { h: '19:15', a: 'Jantar — peixe + salada + abóbora ou inhame', t: 'alimentacao' },
+    { h: '22:00', a: 'Ceia — cottage 200g + castanhas', t: 'alimentacao' },
+    { h: '22:30', a: 'DORMIR', t: 'sono' },
+  ],
+  sabado: [
+    { h: '08:00', a: 'Acordar sem alarme — sono extra = recuperação muscular', t: 'sono' },
+    { h: '08:30', a: 'Café da manhã tranquilo', t: 'alimentacao' },
+    { h: '09:30', a: 'Caminhada 30–45 min + 10 min de alongamento', t: 'treino' },
+    { h: '12:30', a: 'Almoço — refeição livre (sem exagero)', t: 'alimentacao' },
+    { h: '19:00', a: 'Jantar livre — seu "dia do lixo" controlado', t: 'alimentacao' },
+    { h: '23:00', a: 'DORMIR — não passe de 23h para não desregular segunda', t: 'sono' },
+  ],
+  domingo: [
+    { h: '08:30', a: 'Acordar', t: 'sono' },
+    { h: '09:00', a: 'Café da manhã', t: 'alimentacao' },
+    { h: '10:00', a: 'MEAL PREP — 1h30 que muda toda a semana', t: 'alimentacao' },
+    { h: '11:30', a: 'Dia livre — família, lazer', t: 'normal' },
+    { h: '19:00', a: 'Jantar leve', t: 'alimentacao' },
+    { h: '21:30', a: 'Prepare a mochila e separe roupa de segunda', t: 'normal' },
+    { h: '22:00', a: 'DORMIR', t: 'sono' },
+  ],
+};
+
+const SHOPPING = [
+  { cat: 'Proteínas', items: ['Peito de frango (1,5 kg)', 'Ovos (30 unidades)', 'Atum em água (6 latas)', 'Iogurte grego (7 potes 200g)', 'Cottage cheese (2 potes 400g)', 'Salmão / tilápia (500g)', 'Patinho ou fraldinha (400g)', 'Whey Protein (se acabou)'] },
+  { cat: 'Carboidratos', items: ['Aveia em flocos (1 kg)', 'Macarrão integral (1 kg)', 'Cuscuz marroquino (500g)', 'Mandioca congelada em cubos (1 kg)', 'Abóbora cabotiá (1 kg)', 'Inhame (500g)', 'Pão integral (1 pacote)', 'Banana (1 cacho ~10 un)', 'Maçã / pera / manga (6 un)', 'Frutas vermelhas (300g)', 'Leite integral (2 litros)'] },
+  { cat: 'Gorduras', items: ['Azeite de oliva extra-virgem (500ml)', 'Mix de castanhas (300g)', 'Pasta de amendoim sem açúcar (400g)', 'Abacate (2 un)'] },
+  { cat: 'Vegetais & Temperos', items: ['Brócolis ou vagem (500g)', 'Espinafre ou couve (1 maço)', 'Tomate (1 kg)', 'Pepino, alface, rúcula (a gosto)', 'Cebola (1 kg)', 'Alho (1 cabeça)', 'Limão (6 un)'] },
+];
+
+const CHECKLIST = [
+  { id: 'agua', text: 'Beber 400ml de água ao acordar' },
+  { id: 'cafe', text: 'Café da manhã com proteína' },
+  { id: 'booster', text: 'Booster do almoço na bolsa (2 ovos ou atum)' },
+  { id: 'pretreino', text: 'Pré-treino 30–60 min antes' },
+  { id: 'treino', text: 'Treinou e anotou os pesos' },
+  { id: 'poststreino', text: 'Pós-treino dentro de 60 min' },
+  { id: 'creatina', text: 'Tomou creatina (5g)' },
+  { id: 'ceia', text: 'Ceia feita antes de dormir' },
+];
+
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+
+let currentTab = 'hoje';
+let currentPhase = 1;
+let currentMealTab = 0;
+let currentListTab = 0;
+
+function getToday() {
+  const now = new Date();
+  const diff = Math.floor((now - START_DATE) / (1000 * 60 * 60 * 24));
+  const day = Math.max(0, diff) + 1;
+  const phase = day <= 30 ? 1 : 2;
+  const dow = now.getDay(); // 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
+  return { day: Math.min(day, 60), phase, dow };
+}
+
+function getDayType(dow) {
+  if (dow === 1) return 'segunda';
+  if (dow === 4) return 'quinta';
+  if (dow === 2 || dow === 3 || dow === 5) return 'escritorio';
+  if (dow === 6) return 'sabado';
+  return 'domingo';
+}
+
+function getDayLabel(dow) {
+  return ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'][dow];
+}
+
+function getDayTypeLabel(dt) {
+  return {
+    segunda: 'Home Office',
+    quinta: 'Home Office + Mercado',
+    escritorio: 'Escritório',
+    sabado: 'Descanso Ativo',
+    domingo: 'Descanso + Prep'
+  }[dt] || '';
+}
+
+function getTodayNowTime() {
+  const n = new Date();
+  return n.getHours() * 60 + n.getMinutes();
+}
+
+function timeToMin(h) {
+  const [hh, mm] = h.split(':').map(Number);
+  return hh * 60 + mm;
+}
+
+function load(key, def) {
+  try { return JSON.parse(localStorage.getItem(key)) ?? def; } catch { return def; }
+}
+function save(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+}
+
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════
+
+function updateHeader() {
+  const { day, phase, dow } = getToday();
+  document.getElementById('phase-badge').textContent = `Fase ${phase}`;
+  document.getElementById('day-badge').textContent = `D${day}`;
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-' + tab).classList.add('active');
+  render();
+}
+
+function render() {
+  const el = document.getElementById('content');
+  el.innerHTML = '';
+  el.classList.remove('fade-in');
+  void el.offsetWidth;
+  el.classList.add('fade-in');
+  if (currentTab === 'hoje') renderHoje(el);
+  else if (currentTab === 'treino') renderTreino(el);
+  else if (currentTab === 'refeicoes') renderRefeicoes(el);
+  else renderListas(el);
+}
+
+// ─── HOJE ───────────────────────────────────────────────────
+
+function renderHoje(el) {
+  const { day, phase, dow } = getToday();
+  const dayType = getDayType(dow);
+  const schedule = SCHEDULES[dayType];
+  const nowMin = getTodayNowTime();
+
+  // Progress
+  const pct = Math.round((day / 60) * 100);
+  el.innerHTML += `
+    <div id="progress-wrap">
+      <div id="progress-label">
+        <span>${getDayLabel(dow)} · ${getDayTypeLabel(dayType)}</span>
+        <strong>Dia ${day} de 60</strong>
+      </div>
+      <div id="progress-bar-bg">
+        <div id="progress-bar-fill" style="width:${pct}%"></div>
+      </div>
+    </div>`;
+
+  // Schedule
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `<div class="card-header"><div class="card-title">Rotina de Hoje</div><div class="card-sub">Fase ${phase} · ${phase === 1 ? 'Superávit leve (2.870 kcal)' : 'Déficit moderado (2.320 kcal)'}</div></div>`;
+  const body = document.createElement('div');
+  body.style.padding = '0 16px';
+
+  let nextFound = false;
+  schedule.forEach((item, i) => {
+    const itemMin = timeToMin(item.h);
+    const isPast = itemMin < nowMin;
+    const isNext = !nextFound && !isPast;
+    if (isNext) nextFound = true;
+
+    const div = document.createElement('div');
+    div.className = `timeline-item t-tipo-${item.t}`;
+    div.innerHTML = `
+      <span class="t-time" style="${isPast ? 'opacity:0.45' : ''}">${item.h}</span>
+      <span class="t-dot" style="${isPast ? 'opacity:0.4' : ''}"></span>
+      <span class="t-text ${isNext ? 't-now' : ''}" style="${isPast ? 'opacity:0.5' : ''}">${item.a}</span>`;
+    body.appendChild(div);
+  });
+
+  card.appendChild(body);
+
+  // legend
+  card.innerHTML += `<div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--laranja)"></div>Alimentação</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--verde)"></div>Treino</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--azul)"></div>Trabalho</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--roxo)"></div>Sono</div>
+  </div>`;
+
+  el.appendChild(card);
+
+  // Phase 2 reminder
+  if (phase === 2) {
+    el.innerHTML += `<div class="card"><div class="card-body" style="color:var(--laranja);font-size:13px;font-weight:600">
+      🔥 Fase 2 ativa! Reduza descanso entre séries para 45–60s e adicione drop sets.
+    </div></div>`;
+  }
+}
+
+// ─── TREINO ─────────────────────────────────────────────────
+
+function renderTreino(el) {
+  const { dow, phase } = getToday();
+  const training = TRAINING[dow];
+  const stKey = `ex-done-${todayKey()}`;
+  let done = load(stKey, {});
+
+  // Phase toggle
+  el.innerHTML = `
+    <div class="phase-wrap">
+      <button class="phase-btn ${currentPhase===1?'active':''}" onclick="setPhase(1)">Fase 1<br><small style="font-weight:400;font-size:11px">8–10 reps · 60–90s</small></button>
+      <button class="phase-btn ${currentPhase===2?'active':''}" onclick="setPhase(2)">Fase 2<br><small style="font-weight:400;font-size:11px">Drop sets · 45–60s</small></button>
+    </div>`;
+
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="card-header">
+      <div class="card-title">${training.name}</div>
+      <div class="card-sub">${training.sub}</div>
+    </div>
+    <div class="card-body" id="ex-list"></div>`;
+  el.appendChild(card);
+
+  const list = card.querySelector('#ex-list');
+  training.exercises.forEach((ex, i) => {
+    const isDone = !!done[i];
+    const div = document.createElement('div');
+    div.className = 'ex-item';
+    div.innerHTML = `
+      <div class="ex-check ${isDone?'done':''}" onclick="toggleEx(${i})"></div>
+      <div class="ex-info">
+        <div class="ex-name ${isDone?'done':''}">${ex.n}</div>
+        <div class="ex-sets">${ex.s} séries × ${ex.r}</div>
+        <div class="ex-note">${ex.t}</div>
+        ${currentPhase === 2 && i === 0 ? `<div class="ex-phase2-tip">Fase 2: drop set na última série — reduza 25% do peso e vá até a falha</div>` : ''}
+      </div>`;
+    list.appendChild(div);
+  });
+
+  // Progress bar for today's exercises
+  const total = training.exercises.length;
+  const doneCount = Object.keys(done).length;
+  if (total > 0) {
+    const pct = Math.round((doneCount / total) * 100);
+    el.innerHTML += `
+      <div class="card"><div class="card-body">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:13px;color:var(--cinza-m)">Progresso do treino</span>
+          <span style="font-size:13px;font-weight:700;color:var(--verde)">${doneCount}/${total}</span>
+        </div>
+        <div style="background:#e8f5eb;border-radius:6px;height:8px;overflow:hidden">
+          <div style="background:var(--verde);height:100%;border-radius:6px;width:${pct}%;transition:width 0.3s"></div>
+        </div>
+      </div></div>`;
+  }
+
+  window.toggleEx = function(i) {
+    const d = load(stKey, {});
+    if (d[i]) delete d[i]; else d[i] = true;
+    save(stKey, d);
+    renderTreino(document.getElementById('content'));
+    document.getElementById('content').scrollTop = document.getElementById('content').scrollTop;
+  };
+  window.setPhase = function(p) {
+    currentPhase = p;
+    renderTreino(document.getElementById('content'));
+  };
+}
+
+// ─── REFEIÇÕES ──────────────────────────────────────────────
+
+const MEAL_TABS = ['Café', 'Almoço Escrit.', 'Almoço HO', 'Jantar', 'Ceia'];
+
+function renderRefeicoes(el) {
+  // Tab bar
+  const tabWrap = document.createElement('div');
+  tabWrap.className = 'meal-tab-wrap';
+  MEAL_TABS.forEach((t, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'meal-tab' + (currentMealTab === i ? ' active' : '');
+    btn.textContent = t;
+    btn.onclick = () => { currentMealTab = i; renderRefeicoes(document.getElementById('content')); };
+    tabWrap.appendChild(btn);
+  });
+  el.appendChild(tabWrap);
+
+  const card = document.createElement('div');
+  card.className = 'card';
+  el.appendChild(card);
+
+  if (currentMealTab === 0) renderCafe(card);
+  else if (currentMealTab === 1) renderAlmocoEsc(card);
+  else if (currentMealTab === 2) renderAlmocoHO(card);
+  else if (currentMealTab === 3) renderJantar(card);
+  else renderCeia(card);
+}
+
+function renderCafe(card) {
+  card.innerHTML = `
+    <div class="card-header">
+      <div class="card-title">Café da Manhã</div>
+      <div class="card-sub">5–7 min de preparo</div>
+    </div>
+    <div class="card-body">
+      <table class="meal-table">
+        <tr><th>Ingrediente</th><th>Qtd</th><th>F1</th><th>F2</th></tr>
+        <tr><td>Ovos mexidos<br><small style="color:var(--cinza-m)">5 no escrit. / 4 no HO</small></td><td>5 / 4</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Aveia em flocos</td><td>80g</td><td>✓</td><td>60g</td></tr>
+        <tr><td>Banana</td><td>1 média</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Leite integral</td><td>200ml</td><td>✓</td><td>150ml</td></tr>
+        <tr><td>Mel (opcional)</td><td>1 col. chá</td><td>✓</td><td>Retirar</td></tr>
+      </table>
+      <div class="tip-box">💡 Ovos mexidos na frigideira antiaderente. Aveia no micro-ondas 2 min com leite, banana amassada e mel por cima.</div>
+      <div class="info-box">⚡ Nos dias de escritório use 5 ovos para compensar a proteína que vem menos no almoço do restaurante.</div>
+    </div>`;
+}
+
+function renderAlmocoEsc(card) {
+  card.innerHTML = `
+    <div class="card-header">
+      <div class="card-title">Almoço — Escritório</div>
+      <div class="card-sub">Restaurante/RU + Booster</div>
+    </div>
+    <div class="card-body">
+      <div class="strat-row"><div class="strat-label">No prato</div><div class="strat-action">Proteína + arroz + feijão + salada. Sem fritura. Se tiver mais de uma opção de proteína, escolha a mais magra.</div><div class="strat-prot">~20g</div></div>
+      <div class="strat-row"><div class="strat-label">Booster<br><small>(bolsa)</small></div><div class="strat-action">2 ovos cozidos já prontos do domingo<br><strong>OU</strong> 1 lata pequena de atum (85g) com azeite</div><div class="strat-prot">+12–25g</div></div>
+      <div class="strat-row"><div class="strat-label">Total</div><div class="strat-action">Com o booster você garante a meta da refeição</div><div class="strat-prot" style="color:var(--verde)">30–45g ✓</div></div>
+      <div class="tip-box">🥚 Deixe 2 ovos cozidos num potinho na bolsa toda terça, quarta e sexta. Pequeno, não cheira, não precisa talheres.</div>
+    </div>`;
+}
+
+function renderAlmocoHO(card) {
+  card.innerHTML = `
+    <div class="card-header">
+      <div class="card-title">Almoço — Home Office</div>
+      <div class="card-sub">5–10 min · sem arroz</div>
+    </div>
+    <div class="card-body">`;
+
+  const options = [
+    { name: 'A — Macarrão integral + frango', carb: 'Macarrão 100g (seco)', prep: 'Ferve 8 min, drena, mistura o frango do meal prep + azeite. Pronto.' },
+    { name: 'B — Cuscuz marroquino + frango/atum', carb: 'Cuscuz 80g (seco)', prep: 'Coloca no pote, despeja água fervente até cobrir, tampa 5 min. Zero cozimento.' },
+    { name: 'C — Pão integral + ovos + salada', carb: '2 fatias pão integral', prep: '4 ovos mexidos em 5 min. Come com o pão. Simples demais.' },
+    { name: 'D — Tapioca + frango', carb: '2 tapiocas (goma pronta)', prep: 'Frigideira seca 2 min cada. Recheio com frango desfiado + azeite.' },
+  ];
+
+  options.forEach(o => {
+    card.querySelector('.card-body').innerHTML += `
+      <div class="option-card">
+        <div class="option-name">${o.name}</div>
+        <div class="option-carb">Carbo: ${o.carb} · Proteína: 150g frango do meal prep</div>
+        <div class="option-prep">${o.prep}</div>
+      </div>`;
+  });
+
+  card.querySelector('.card-body').innerHTML += `<div class="info-box">🫙 Cuscuz marroquino é a opção mais rápida do planeta — só água fervente e 5 minutos. Compra no supermercado normal.</div>`;
+}
+
+function renderJantar(card) {
+  card.innerHTML = `
+    <div class="card-header">
+      <div class="card-title">Jantar</div>
+      <div class="card-sub">15 min de preparo</div>
+    </div>
+    <div class="card-body">
+      <table class="meal-table">
+        <tr><th>Ingrediente</th><th>Qtd</th><th>F1</th><th>F2</th></tr>
+        <tr><td>Peixe/frango grelhado</td><td>200–220g</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Salada (alface, tomate, pepino)</td><td>à vontade</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Azeite + limão</td><td>15ml</td><td>✓</td><td>10ml</td></tr>
+        <tr><td>Carbo (escolha 1 abaixo)</td><td>ver opções</td><td>✓</td><td>Retirar</td></tr>
+      </table>
+      <div class="carb-title">Substitutos da Batata Doce:</div>
+      <div class="carb-item"><div class="carb-dot"></div><div class="carb-info"><div class="carb-name">Mandioca cozida (congelada)</div><div class="carb-prep">150g · Ferver 15 min ou micro-ondas 10 min</div></div></div>
+      <div class="carb-item"><div class="carb-dot"></div><div class="carb-info"><div class="carb-name">Abóbora cabotiá assada</div><div class="carb-prep">200g em cubos · Forno 200°C por 25 min</div></div></div>
+      <div class="carb-item"><div class="carb-dot"></div><div class="carb-info"><div class="carb-name">Inhame cozido</div><div class="carb-prep">150g · 20 min, amassa com azeite e sal</div></div></div>
+      <div class="carb-item"><div class="carb-dot"></div><div class="carb-info"><div class="carb-name">Macarrão integral</div><div class="carb-prep">80g seco · Ferve 8 min</div></div></div>
+      <div class="tip-box">⚠️ Fase 2: retire o carbo do jantar. Só proteína + salada + azeite.</div>
+    </div>`;
+}
+
+function renderCeia(card) {
+  card.innerHTML = `
+    <div class="card-header">
+      <div class="card-title">Ceia</div>
+      <div class="card-sub">Obrigatória antes de dormir</div>
+    </div>
+    <div class="card-body">
+      <div class="option-card">
+        <div class="option-name">Cottage 250g + 10 castanhas</div>
+        <div class="option-prep">Dose maior nos dias de escritório para compensar o almoço</div>
+      </div>
+      <div class="option-card" style="margin-top:8px">
+        <div class="option-name">Iogurte grego 200g + mel + castanhas</div>
+        <div class="option-prep">Alternativa igualmente eficaz</div>
+      </div>
+      <div class="info-box" style="margin-top:10px">🌙 A caseína do cottage libera aminoácidos a noite toda — é literalmente quando o músculo cresce enquanto você dorme.</div>
+    </div>`;
+}
+
+// ─── LISTAS ─────────────────────────────────────────────────
+
+function renderListas(el) {
+  const tabBar = document.createElement('div');
+  tabBar.className = 'tab-bar';
+  tabBar.innerHTML = `
+    <button class="tab-btn ${currentListTab===0?'active':''}" onclick="setListTab(0)">✅ Checklist Diário</button>
+    <button class="tab-btn ${currentListTab===1?'active':''}" onclick="setListTab(1)">🛒 Mercado</button>`;
+  el.appendChild(tabBar);
+
+  if (currentListTab === 0) renderChecklist(el);
+  else renderMercado(el);
+
+  window.setListTab = function(t) {
+    currentListTab = t;
+    renderListas(document.getElementById('content'));
+  };
+}
+
+function renderChecklist(el) {
+  const key = `check-${todayKey()}`;
+  let state = load(key, {});
+
+  const card = document.createElement('div');
+  card.className = 'card';
+  const doneCount = Object.values(state).filter(Boolean).length;
+  card.innerHTML = `
+    <div class="card-header">
+      <div class="card-title">Tarefas de Hoje</div>
+      <div class="card-sub">${doneCount}/${CHECKLIST.length} concluídas</div>
+    </div>
+    <div class="card-body" style="padding:0 16px" id="checklist-body"></div>`;
+  el.appendChild(card);
+
+  const body = card.querySelector('#checklist-body');
+  CHECKLIST.forEach(item => {
+    const isDone = !!state[item.id];
+    const div = document.createElement('div');
+    div.className = 'check-item';
+    div.onclick = () => {
+      const s = load(key, {});
+      s[item.id] = !s[item.id];
+      save(key, s);
+      renderListas(document.getElementById('content'));
+    };
+    div.innerHTML = `
+      <div class="check-box ${isDone?'done':''}"></div>
+      <span class="check-text ${isDone?'done':''}">${item.text}</span>`;
+    body.appendChild(div);
+  });
+
+  // Progress bar
+  const pct = Math.round((doneCount / CHECKLIST.length) * 100);
+  el.innerHTML += `
+    <div class="card"><div class="card-body">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:13px;color:var(--cinza-m)">Progresso do dia</span>
+        <span style="font-size:13px;font-weight:700;color:var(--verde)">${pct}%</span>
+      </div>
+      <div style="background:#e8f5eb;border-radius:6px;height:8px;overflow:hidden">
+        <div style="background:var(--verde);height:100%;border-radius:6px;width:${pct}%;transition:width 0.3s"></div>
+      </div>
+      <div style="font-size:12px;color:var(--cinza-m);margin-top:6px;text-align:center">Reset automático à meia-noite</div>
+    </div></div>`;
+}
+
+function renderMercado(el) {
+  const key = 'mercado-state';
+  let state = load(key, {});
+
+  // Count
+  let total = 0, doneC = 0;
+  SHOPPING.forEach(cat => cat.items.forEach(item => {
+    total++;
+    if (state[item]) doneC++;
+  }));
+
+  el.innerHTML += `
+    <div class="card"><div class="card-body" style="text-align:center;padding:10px">
+      <div style="font-size:13px;color:var(--cinza-m);margin-bottom:4px">Itens marcados</div>
+      <div style="font-size:24px;font-weight:700;color:var(--verde)">${doneC} / ${total}</div>
+    </div></div>`;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'card';
+  el.appendChild(wrap);
+
+  SHOPPING.forEach(cat => {
+    const catDiv = document.createElement('div');
+    catDiv.className = 'mcat-header';
+    catDiv.textContent = cat.cat;
+    wrap.appendChild(catDiv);
+
+    cat.items.forEach(item => {
+      const isDone = !!state[item];
+      const div = document.createElement('div');
+      div.className = 'shop-item';
+      div.onclick = () => {
+        const s = load(key, {});
+        s[item] = !s[item];
+        save(key, s);
+        renderListas(document.getElementById('content'));
+      };
+      div.innerHTML = `
+        <div class="shop-box ${isDone?'done':''}"></div>
+        <span class="shop-text ${isDone?'done':''}">${item}</span>`;
+      wrap.appendChild(div);
+    });
+  });
+
+  const resetWrap = document.createElement('div');
+  resetWrap.style.padding = '12px';
+  const btn = document.createElement('button');
+  btn.className = 'reset-btn';
+  btn.textContent = 'Limpar lista (novo mercado)';
+  btn.onclick = () => {
+    save(key, {});
+    renderListas(document.getElementById('content'));
+  };
+  resetWrap.appendChild(btn);
+  el.appendChild(resetWrap);
+}
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+
+updateHeader();
+currentPhase = getToday().phase;
+render();
+
+// Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+// Refresh header every minute
+setInterval(updateHeader, 60000);
+</script>
+</body>
+</html>
